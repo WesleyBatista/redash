@@ -700,6 +700,7 @@ class AlertAPI(BaseResource):
 
 
 class AlertListAPI(BaseResource):
+    @require_permission("manage")
     def post(self):
         req = request.get_json(True)
         required_fields = ('options', 'name', 'query_id')
@@ -735,11 +736,13 @@ class AlertListAPI(BaseResource):
 
         return alert.to_dict()
 
+    @require_permission("manage")
     def get(self):
         return [alert.to_dict() for alert in models.Alert.all()]
 
 
 class AlertSubscriptionListResource(BaseResource):
+    @require_permission("manage")
     def post(self, alert_id):
         subscription = models.AlertSubscription.create(alert=alert_id, user=self.current_user)
         record_event.delay({
@@ -751,12 +754,14 @@ class AlertSubscriptionListResource(BaseResource):
         })
         return subscription.to_dict()
 
+    @require_permission("manage")
     def get(self, alert_id):
         subscriptions = models.AlertSubscription.all(alert_id)
         return [s.to_dict() for s in subscriptions]
 
 
 class AlertSubscriptionResource(BaseResource):
+    @require_permission("manage")
     def delete(self, alert_id, subscriber_id):
         models.AlertSubscription.unsubscribe(alert_id, subscriber_id)
         record_event.delay({
