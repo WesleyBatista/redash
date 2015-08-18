@@ -88,6 +88,11 @@ class BaseModel(peewee.Model):
 
         self.save(only=dirty_fields)
 
+    def get_countries_str_for_where(self, countries):
+        countriesStr = '\',\''.join(countries)
+        countriesStr = "'{}'".format(countriesStr)
+        return countriesStr
+
 
 class ModelTimestampsMixin(BaseModel):
     updated_at = DateTimeTZField(default=datetime.datetime.now)
@@ -133,6 +138,7 @@ class ApiUser(UserMixin, PermissionsCheckMixin):
 class Group(BaseModel):
     DEFAULT_PERMISSIONS = ['create_dashboard', 'create_query', 'edit_dashboard', 'edit_query',
                            'view_query', 'view_source', 'execute_query']
+    # DEFAULT_PERMISSIONS = ['view_query', 'view_source', 'execute_query']
 
     id = peewee.PrimaryKeyField()
     name = peewee.CharField(max_length=100)
@@ -601,14 +607,12 @@ class Query(ModelTimestampsMixin, BaseModel):
 
     @classmethod
     def recent(cls, user_id=None, limit=20):
-
         # TODO: instead of t2 here, we should define table_alias for Query table
         query = cls.select().where(Event.created_at > peewee.SQL("current_date - 7")).\
             join(Event, on=(Query.id == peewee.SQL("t2.object_id::integer"))).\
             where(Event.action << ('edit', 'execute', 'edit_name', 'edit_description', 'view_source')).\
             where(~(Event.object_id >> None)).\
             where(Event.object_type == 'query'). \
-            where(cls.user == user_id). \
             where(cls.is_archived == False).\
             group_by(Event.object_id, Query.id).\
             order_by(peewee.SQL("count(0) desc"))
@@ -803,7 +807,6 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
             where(Event.action << ('edit', 'view')).\
             where(~(Event.object_id >> None)). \
             where(Event.object_type == 'dashboard'). \
-            where(cls.user == user_id). \
             group_by(Event.object_id, Dashboard.id). \
             order_by(peewee.SQL("count(0) desc"))
 
@@ -818,9 +821,8 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
 
     @classmethod
     def filtered_dashs(self, countries):
-        countriesStr = '\',\''.join(countries)
-        countriesStr = "'{}'".format(countriesStr)
 
+        countriesStr = self.get_countries_str_for_where(countries)
 
         queryStr = """
             SELECT
@@ -830,7 +832,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
                 users.name,
                 users.name,
                 users.email
-                
+            
             FROM
                 dashboards AS dashboards
             LEFT JOIN (
@@ -839,25 +841,16 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
                     name,
                     email
                 FROM
-                    users 
+                    users
                 WHERE
-                    id IN (
-                        SELECT
-                            id
-                        FROM
-                            users
-                        WHERE
-                            groups @> ARRAY['{group_name}']::varchar[]
-                            AND ARRAY[{country_codes}]::varchar[] @> countries
-                    )
-                    
-                    
+                    groups @> ARRAY['{group_name}']::varchar[]
+                    AND ARRAY[{country_codes}]::varchar[] @> countries
             ) users
             ON users.id = dashboards.user_id
             WHERE
                 users.id IS NOT NULL
-
         """
+
         queryStr = queryStr.format(group_name = "manage", country_codes = countriesStr)
 
         results = self.raw(queryStr).execute()
