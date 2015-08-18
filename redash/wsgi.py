@@ -2,6 +2,7 @@ import json
 from flask import Flask, make_response
 from werkzeug.wrappers import Response
 from flask.ext.restful import Api
+from flask_debugtoolbar import DebugToolbarExtension
 
 from redash import settings, utils, mail
 from redash.models import db
@@ -26,6 +27,14 @@ app.config['DATABASE'] = settings.DATABASE_CONFIG
 app.config.update(settings.all_settings())
 db.init_app(app)
 mail.init_app(app)
+
+app.config.update(
+    DEBUG=True,
+    SECRET_KEY='how you load your config, there',
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
+)
+
+toolbar = DebugToolbarExtension(app)
 
 from redash.authentication import setup_authentication
 setup_authentication(app)
