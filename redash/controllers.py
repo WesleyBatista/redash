@@ -323,6 +323,7 @@ class DashboardListAPI(BaseResource):
 
 
 class DashboardAPI(BaseResource):
+
     def get(self, dashboard_slug=None):
         try:
             dashboard = models.Dashboard.get_by_slug(dashboard_slug)
@@ -798,7 +799,10 @@ class UserListAPI(BaseResource):
     @require_permission('create_user')
     def get(self):
         # only return all if the current user is admin
-        # return [user.to_dict() for user in models.User.all()]
+        if "admin" in current_user.groups:
+            
+            return [user.to_dict() for user in models.User.all()]
+
         return [user.to_dict() for user in models.User.get_by_country(current_user.id, current_user.countries)]
 
 
