@@ -913,6 +913,14 @@
       getCountryName: function(countryCode){
         return countriesList[countryCode];
       },
+      getCountriesArray: function(){
+
+        var countriesArray = [];
+        for(country in countriesList){
+          countriesArray.push(country)
+        }
+        return countriesArray;
+      },
       getCountriesDict: function(countriesCodes){
         var countries = [];
         var self = this;
@@ -927,10 +935,15 @@
       },
       getCurrentUserCountries: function(){
         var self = this;
-        return self.getCountriesDict(currentUser.countries);
+        countries  = currentUser.countries;
+
+        if(currentUser.groups.indexOf("admin") !== -1){
+          countries = self.getCountriesArray()
+        }
+
+        return self.getCountriesDict(countries);
       }
     }
-
 
     return actions;
 
