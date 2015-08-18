@@ -601,18 +601,17 @@ class Query(ModelTimestampsMixin, BaseModel):
 
     @classmethod
     def recent(cls, user_id=None, limit=20):
+
         # TODO: instead of t2 here, we should define table_alias for Query table
         query = cls.select().where(Event.created_at > peewee.SQL("current_date - 7")).\
             join(Event, on=(Query.id == peewee.SQL("t2.object_id::integer"))).\
             where(Event.action << ('edit', 'execute', 'edit_name', 'edit_description', 'view_source')).\
             where(~(Event.object_id >> None)).\
             where(Event.object_type == 'query'). \
+            where(cls.user == user_id). \
             where(cls.is_archived == False).\
             group_by(Event.object_id, Query.id).\
             order_by(peewee.SQL("count(0) desc"))
-
-        if user_id:
-            query = query.where(Event.user == user_id)
 
         query = query.limit(limit)
 
@@ -804,6 +803,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
             where(Event.action << ('edit', 'view')).\
             where(~(Event.object_id >> None)). \
             where(Event.object_type == 'dashboard'). \
+            where(cls.user == user_id). \
             group_by(Event.object_id, Dashboard.id). \
             order_by(peewee.SQL("count(0) desc"))
 
