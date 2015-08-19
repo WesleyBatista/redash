@@ -626,7 +626,7 @@
     return WidgetResource;
   }
 
-  var authHttpResponseInterceptor = function($q, $location, $log, growl){
+  var authHttpResponseInterceptor = function($q, $location, $log, $window, growl){
 
 
     return {
@@ -647,6 +647,11 @@
                 $log.debug("Response 403");
                 $location.path('/login').search('returnTo', $location.path());
                 growl.addErrorMessage("You are unable to view this resource");
+            }
+            else if(rejection.status === 404){
+                $log.debug("Response 404");
+                $window.history.back();
+                growl.addErrorMessage("The resource was not found");
             }
             else{
               // $log.info(rejection);
@@ -957,7 +962,7 @@
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])
-      .factory('authHttpResponseInterceptor', ['$q','$location', '$log', 'growl', authHttpResponseInterceptor])
+      .factory('authHttpResponseInterceptor', ['$q','$location', '$log', '$window', 'growl', authHttpResponseInterceptor])
       .factory('Country', [Country])
       ;
 })();
