@@ -42,7 +42,7 @@
         <a class="navbar-brand" href="/"><img src="/images/redash_icon_small.png"/></a>
     </div>
     {% raw %}
-    <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <!-- <div data-ng-include="'views/partials/menu.html'" class="collapse navbar-collapse navbar-ex1-collapse"> -->
         <ul class="nav navbar-nav">
             <li class="active" ng-show="pageTitle"><a class="page-title" ng-bind="pageTitle"></a></li>
             <li class="dropdown" ng-show="groupedDashboards.length > 0 || otherDashboards.length > 0 || currentUser.hasPermission('create_dashboard')" dropdown>
