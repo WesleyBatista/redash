@@ -209,8 +209,10 @@
     Events.record(currentUser, "view", "page", "personal_homepage");
     $scope.$parent.pageTitle = "Home";
 
-    $scope.recentQueries = Query.recent();
-    $scope.recentDashboards = Dashboard.recent();
+    if(currentUser.groups.indexOf("manage") !== -1 || currentUser.groups.indexOf("admin") !== -1){
+      $scope.recentQueries = Query.recent();
+      $scope.recentDashboards = Dashboard.recent();
+    }
 
     $scope.archiveDashboard = function (dashboard) {
       if (confirm('Are you sure you want to delete "' + dashboard.name + '" dashboard?')) {
