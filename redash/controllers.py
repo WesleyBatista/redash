@@ -231,6 +231,7 @@ class DataSourceAPI(BaseResource):
             abort(400)
 
         data_source.name = req['name']
+        data_source.geo_value = req['geo_value']
         data_source.options = json.dumps(req['options'])
 
         data_source.save()
@@ -253,7 +254,7 @@ class DataSourceListAPI(BaseResource):
     @require_permission("admin")
     def post(self):
         req = request.get_json(True)
-        required_fields = ('options', 'name', 'type')
+        required_fields = ('options', 'name', 'type', 'geo_value')
         for f in required_fields:
             if f not in req:
                 abort(400)
@@ -261,7 +262,9 @@ class DataSourceListAPI(BaseResource):
         if not validate_configuration(req['type'], req['options']):
             abort(400)
 
-        datasource = models.DataSource.create(name=req['name'], type=req['type'], options=json.dumps(req['options']))
+        logging.info(req["geo_value"])
+
+        datasource = models.DataSource.create(name=req['name'], type=req['type'], geo_value = req["geo_value"], options=json.dumps(req['options']))
 
         return datasource.to_dict(all=True)
 
