@@ -94,6 +94,10 @@ class BigQuery(BaseQueryRunner):
                     'type': 'string',
                     'title': 'Project ID'
                 },
+                'geo_value': {
+                    'type': 'string',
+                    'title': 'Geo Value'
+                },
                 'jsonKeyFile': {
                     "type": "string",
                     'title': 'JSON Key File'
