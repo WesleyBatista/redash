@@ -281,36 +281,50 @@ api.add_resource(DataSourceSchemaAPI, '/api/data_sources/<data_source_id>/schema
 
 class DashboardRecentAPI(BaseResource):
     def get(self):
-        recent = [d.to_dict() for d in models.Dashboard.recent(current_user.id)]
 
-        global_recent = []
-        if len(recent) < 10:
-            global_recent = [d.to_dict() for d in models.Dashboard.recent()]
+        if "admin" in current_user.groups:
+            recent = [d.to_dict() for d in models.Dashboard.recent()]
 
-        return distinct(chain(recent, global_recent), key=lambda d: d['id'])
+            global_recent = []
+            if len(recent) < 10:
+                global_recent = [d.to_dict() for d in models.Dashboard.recent()]
+
+            return distinct(chain(recent, global_recent), key=lambda d: d['id'])
+
+        elif "manage" in current_user.groups:
+            recent = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
+
+            global_recent = []
+            if len(recent) < 10:
+                global_recent = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
+
+            return distinct(chain(recent, global_recent), key=lambda d: d['id'])
+
+
+
 
 
 class DashboardListAPI(BaseResource):
+
     def get(self):
 
-        result = list()
+        result = dict()
 
         # TODO: remove hard coded permissions
+        if("admin" in current_user.groups):
+            result = [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)]
+            return result
+
         if("manage" in current_user.groups):
             result = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
             return result
 
         if(["default"] == current_user.groups):
             # filter to show only the dashboards from the regional
-            result = [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)] 
+            result = [d.to_dict() for d in models.Dashboard.filtered_dashs(current_user.countries)]
             return result
 
-
-        return [d.to_dict() for d in models.Dashboard.select().where(models.Dashboard.is_archived==False)]
-        
-
-
-        return dashboards
+        return result
 
     @require_permission('create_dashboard')
     def post(self):
@@ -325,12 +339,34 @@ class DashboardListAPI(BaseResource):
 class DashboardAPI(BaseResource):
 
     def get(self, dashboard_slug=None):
+        results = {}
+
         try:
-            dashboard = models.Dashboard.get_by_slug(dashboard_slug)
+            parent_user_id = [user.to_dict() for user in models.User.get_parent_user(current_user.countries)][0]
+
+            if "admin" in current_user.groups:
+                dashboard = models.Dashboard.get_by_slug(dashboard_slug)
+                results = dashboard.to_dict(with_widgets=True)
+                return results
+
+            elif "manage" in current_user.groups:
+                # we dont use the parent_user_id because the colum just tell us 
+                # the users who created the current_user.
+                # but what we need is the business logic. who is above him. who is
+                # tehe Regional BI
+                dashboard = models.Dashboard.get_by_slug(dashboard_slug, parent_user_id["id"])
+                results = dashboard.to_dict(with_widgets=True)
+                return results
+
+            elif ["default"] == current_user.groups:
+                dashboard = models.Dashboard.get_by_slug(dashboard_slug, parent_user_id["id"])
+                results = dashboard.to_dict(with_widgets=True)
+                return results
+
         except models.Dashboard.DoesNotExist:
             abort(404)
 
-        return dashboard.to_dict(with_widgets=True)
+        abort(403)
 
     @require_permission('edit_dashboard')
     def post(self, dashboard_slug):
@@ -400,18 +436,41 @@ class QuerySearchAPI(BaseResource):
     @require_permission('view_query')
     def get(self):
         term = request.args.get('q', '')
+        countries = current_user.countries
 
-        return [q.to_dict() for q in models.Query.search(term)]
+        if "admin" in current_user.groups:
+            countries = None
+            return [q.to_dict() for q in models.Query.search(term)]
+        
+        elif "manage" in current_user.groups:
+            return [q.to_dict() for q in models.Query.search_filtered_by_country(term, countries)]
 
+        else:
+            # 
+            countries = [user.to_dict()["countries"] for user in models.User.get_parent_user(current_user.countries)]
+            return [q.to_dict() for q in models.Query.search(term, countries)]
+
+        abort(403)
 
 class QueryRecentAPI(BaseResource):
     @require_permission('view_query')
     def get(self):
-        recent = [d.to_dict() for d in models.Query.recent(current_user.id)]
+
+        if "admin" in current_user.groups:
+            user_id = None
+
+        elif "manage" in current_user.groups:
+
+            user_id = current_user.id
+        else:
+            # gets the regional user id
+            user_id = None
+
+        recent = [d.to_dict() for d in models.Query.recent(user_id)]
 
         global_recent = []
         if len(recent) < 10:
-            global_recent = [d.to_dict() for d in models.Query.recent()]
+            global_recent = [d.to_dict() for d in models.Query.recent(user_id)]
 
         return distinct(chain(recent, global_recent), key=lambda d: d['id'])
 
@@ -595,7 +654,7 @@ class QueryResultAPI(BaseResource):
                 headers['Access-Control-Allow-Origin'] = origin
                 headers['Access-Control-Allow-Credentials'] = str(settings.ACCESS_CONTROL_ALLOW_CREDENTIALS).lower()
 
-    @require_permission('view_query')
+    @require_permission('execute_query')
     def options(self, query_id=None, query_result_id=None, filetype='json'):
         headers = {}
         self.add_cors_headers(headers)
@@ -608,7 +667,7 @@ class QueryResultAPI(BaseResource):
 
         return make_response("", 200, headers)
 
-    @require_permission('view_query')
+    @require_permission('execute_query')
     def get(self, query_id=None, query_result_id=None, filetype='json'):
         if query_result_id is None and query_id is not None:
             query = models.Query.get(models.Query.id == query_id)

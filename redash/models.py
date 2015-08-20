@@ -88,11 +88,6 @@ class BaseModel(peewee.Model):
 
         self.save(only=dirty_fields)
 
-    def get_countries_str_for_where(self, countries):
-        countriesStr = '\',\''.join(countries)
-        countriesStr = "'{}'".format(countriesStr)
-        return countriesStr
-
 
 class ModelTimestampsMixin(BaseModel):
     updated_at = DateTimeTZField(default=datetime.datetime.now)
@@ -237,6 +232,29 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
         return self.get(self.email == email)
 
     @classmethod
+    def get_parent_user(self, countries):
+        """
+        Should return the regional BIs. The ones that are above the user.
+        """
+
+        countriesStr = get_countries_str_for_where(countries)
+
+        queryStr = """
+                SELECT
+                    *
+                FROM
+                    users
+                WHERE
+                    groups @> ARRAY['{group}']::varchar[]
+                    AND ARRAY[{countries}]::varchar[] @> countries
+        """.format(countries = countriesStr, group = "manage")
+
+
+        a = self.raw(queryStr).execute()
+        return a
+
+
+    @classmethod
     def get_by_country(self, current_user_id, countries):
         # logging.info(self.get().sql())
         countriesStr = '\',\''.join(countries)
@@ -355,6 +373,7 @@ class DataSource(BaseModel):
     queue_name = peewee.CharField(default="queries")
     scheduled_queue_name = peewee.CharField(default="scheduled_queries")
     created_at = DateTimeTZField(default=datetime.datetime.now)
+    geo_value = peewee.CharField()
 
     class Meta:
         db_table = 'data_sources'
@@ -364,6 +383,7 @@ class DataSource(BaseModel):
             'id': self.id,
             'name': self.name,
             'type': self.type,
+            'geo_value': self.geo_value,
             'syntax': self.query_runner.syntax
         }
 
@@ -605,6 +625,31 @@ class Query(ModelTimestampsMixin, BaseModel):
 
         return cls.select().where(where).order_by(cls.created_at.desc())
 
+
+    @classmethod
+    def search_filtered_by_country(cls, term, countries):
+        #TODO: This is very naive implementation of search, to be replaced with PostgreSQL full-text-search solution.
+
+        # gets user id from the countries passed
+
+        users = User.get_parent_user(countries)
+        users = [user for user in users]
+        user = users[0].to_dict()
+
+        user_id = user["id"]
+
+        logging.info(user_id)
+
+        # 
+
+        where = (cls.name**u"%{}%".format(term)) | (cls.description**u"%{}%".format(term))
+
+        if term.isdigit():
+            where |= cls.id == term
+
+        where &= cls.is_archived == False
+        return cls.select().where(cls.user == user_id).where(where).order_by(cls.created_at.desc())
+
     @classmethod
     def recent(cls, user_id=None, limit=20):
         # TODO: instead of t2 here, we should define table_alias for Query table
@@ -618,6 +663,9 @@ class Query(ModelTimestampsMixin, BaseModel):
             order_by(peewee.SQL("count(0) desc"))
 
         query = query.limit(limit)
+
+        if user_id:
+            query = query.where(Query.user == user_id)
 
         return query
 
@@ -797,13 +845,21 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
         }
 
     @classmethod
-    def get_by_slug(cls, slug):
-        return cls.get(cls.slug == slug)
+    def get_by_slug(cls, slug, user_id = None):
+        logging.info('slug')
+        logging.info(slug)
+        logging.info("user_id")
+        logging.info(user_id)
+        if user_id:
+            return cls.get(cls.slug == slug, cls.user == user_id)
+        else:
+            return cls.get(cls.slug == slug)
 
     @classmethod
     def recent(cls, user_id=None, limit=20):
         query = cls.select().where(Event.created_at > peewee.SQL("current_date - 7")). \
             join(Event, on=(Dashboard.id == peewee.SQL("t2.object_id::integer"))). \
+            where(cls.is_archived == False).\
             where(Event.action << ('edit', 'view')).\
             where(~(Event.object_id >> None)). \
             where(Event.object_type == 'dashboard'). \
@@ -815,24 +871,27 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
 
         query = query.limit(limit)
 
-        logging.info(query.sql())
-
         return query
 
     @classmethod
     def filtered_dashs(self, countries):
 
-        countriesStr = self.get_countries_str_for_where(countries)
+        countriesStr = get_countries_str_for_where(countries)
 
         queryStr = """
             SELECT
-                dashboards.id,
-                dashboards.name,
-                dashboards.user_email,
-                users.name,
-                users.name,
-                users.email
-            
+                dashboards.id AS id,
+                dashboards.slug AS slug,
+                dashboards.name AS name,
+                users.email AS user_email,
+                users.id AS user_id,
+                dashboards.layout AS layout,
+                dashboards.dashboard_filters_enabled AS dashboard_filters_enabled,
+                dashboards.is_archived AS is_archived,
+                dashboards.created_at AS created_at,
+                dashboards.updated_at AS updated_at,
+                users.name AS users_name,
+                users.email AS users_email
             FROM
                 dashboards AS dashboards
             LEFT JOIN (
@@ -845,16 +904,20 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
                 WHERE
                     groups @> ARRAY['{group_name}']::varchar[]
                     AND ARRAY[{country_codes}]::varchar[] @> countries
+
             ) users
             ON users.id = dashboards.user_id
             WHERE
                 users.id IS NOT NULL
+                AND dashboards.is_archived IS FALSE
         """
 
         queryStr = queryStr.format(group_name = "manage", country_codes = countriesStr)
 
+        # logging.info(attemp)
         results = self.raw(queryStr).execute()
 
+        # results = [row for row in db.database.execute_sql(queryStr)]
         return results
 
     def save(self, *args, **kwargs):
@@ -996,3 +1059,8 @@ def create_db(create_tables, drop_tables):
             model.create_table()
 
     db.close_db(None)
+
+def get_countries_str_for_where(countries):
+    countriesStr = '\',\''.join(countries)
+    countriesStr = "'{}'".format(countriesStr)
+    return countriesStr
