@@ -874,6 +874,12 @@ class UserListAPI(BaseResource):
 
         user = models.User(**kwargs)
 
+        # dont let regionals add other managers
+        countries_check_permission = [bool(country in current_user.countries) for country in kwargs["countries"]]
+        message = "you have selected a country which you havent permission do add user"
+        assert all(countries_check_permission), message
+        abort(403, message) 
+
         try:
             user.save()
             return user.to_dict()
