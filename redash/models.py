@@ -331,18 +331,16 @@ class Area(BaseModel):
         return unicode(self.city_code)
 
     @classmethod
-    def get_countries_by_subregion(self, geo_value):
-        query = self.select(
-            self.country_code, 
-            self.country_name
-        ).where(
-                self.subregion_code == geo_value
-        ).group_by(
-            self.country_code, 
-            self.country_name 
-        )
-        
+    def get_countries(self, subregion_code):
+        query = self.select().where(self.subregion_code == subregion_code)
         return query
+
+
+    @classmethod
+    def get_all(self):
+        query = self.select()
+        return query
+
 
 
 
