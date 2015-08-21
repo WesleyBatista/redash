@@ -60,8 +60,7 @@
     $scope.$parent.pageTitle = "Users";
     $scope.userId = $routeParams.userId;
 
-    $scope.countries = Country.getCurrentUserCountries();
-
+    $scope.areas = Country.getCurrentUserCountries();
     if ($scope.userId === "new") {
       Events.record(currentUser, 'view', 'page', 'users/new');
       $scope.user = new User({options: {}});
@@ -70,7 +69,7 @@
       Events.record(currentUser, 'view', 'user', $scope.userId);
       $scope.user = User.get({id: $scope.userId}, function(user) {
 
-        countries = Country.getCountriesDict(user.countries);
+        countries = Country.getCountriesList(user.countries);
         $scope.user.countries = countries;
 
         $log.debug(countries);
@@ -92,7 +91,7 @@
 
           // CODE FOR SINGLE COUNTRY
           $scope.user = User.get({id: $scope.userId}, function(user){
-            countries = Country.getCountriesDict(user.countries);
+            countries = Country.getCountriesList(user.countries);
             $scope.user.countries = countries[0];
           });
           // END

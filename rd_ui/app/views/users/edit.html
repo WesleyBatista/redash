@@ -16,13 +16,15 @@
                     <input type="string" placeholder="" class="form-control" ng-model="user.email" required>
                 </div>
 
+                <input type="checkbox" class="form-control" ng-show="currentUser.isAdmin" ng-model="user.is_manager">
+
                 <div class="form-group">
-                    <label for="userCountries">Country</label>
+                    <label>Location</label>
                       <ui-select multiple sortable="true" close-on-select="false" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;" required>
-                        <ui-select-match placeholder="Select country...">{{$item.code}} - {{$item.name}}</ui-select-match>
-                        <ui-select-choices group-by="groupByRegionFn" repeat="country in countries | filter: $select.search">
-                          <small ng-bind-html="country.code | trustAsHtml"></small>
-                          <span ng-bind-html="country.name | trustAsHtml"></span>
+                        <ui-select-match placeholder="Select area...">{{$item.code}} - {{$item.name}}</ui-select-match>
+                        <ui-select-choices repeat="area in (areas) | filter: $select.search">
+                          <small ng-bind-html="area.code | trustAsHtml"></small>
+                          <span ng-bind-html="area.name | trustAsHtml"></span>
                         </ui-select-choices>
                       </ui-select>
                 </div>
