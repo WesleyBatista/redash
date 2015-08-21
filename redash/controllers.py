@@ -504,7 +504,18 @@ class QueryListAPI(BaseResource):
 
     @require_permission('view_query')
     def get(self):
-        return [q.to_dict(with_stats=True) for q in models.Query.all_queries()]
+
+        results = list()
+
+        if "admin" in current_user.groups:
+            results = [q.to_dict(with_stats=True) for q in models.Query.all_queries()]
+
+        elif "manage" in current_user.groups:
+            results = [q.to_dict(with_stats=True) for q in models.Query.get_all_by_user(current_user.id)]
+
+        return results
+
+
 
 
 class QueryAPI(BaseResource):
