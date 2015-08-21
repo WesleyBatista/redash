@@ -188,6 +188,8 @@
         return user_id && (user_id == currentUser.id);
     };
 
+    currentUser.isAdmin = (currentUser.groups.indexOf("admin") !== -1)
+
     currentUser.hasPermission = function(permission) {
         return this.permissions.indexOf(permission) != -1;
     };
