@@ -938,6 +938,37 @@ api.add_resource(UserListAPI, '/api/users', endpoint='users')
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
 
+class AreaListAPI(BaseResource):
+    
+    def get(self):
+
+        return [area.to_dict() for area in models.Area.get_all()]
+
+
+class AreaCountryListAPI(BaseResource):
+    
+    def get(self, subregion_code):
+        return [area.to_dict() for area in models.Area.get_countries(subregion_code)]
+
+
+
+class AreaCityListAPI(BaseResource):
+    
+    def get(self, subregion_code, country_code):
+        return [area.to_dict() for area in models.Area.get_cities(country_code)]
+
+
+
+class AreaCityAPI(BaseResource):
+    
+    def get(self, subregion_code, country_code, city_code):
+        return [area.to_dict() for area in models.Area.get_city(city_code)]
+
+api.add_resource(AreaListAPI, '/api/areas', endpoint='areas')
+api.add_resource(AreaCountryListAPI, '/api/areas/<subregion_code>', endpoint='areas_countries')
+api.add_resource(AreaCityListAPI, '/api/areas/<subregion_code>/<country_code>', endpoint='areas_cities')
+api.add_resource(AreaCityAPI, '/api/areas/<subregion_code>/<country_code>/<city_code>', endpoint='areas_city')
+
 @app.route('/<path:filename>')
 def send_static(filename):
     if current_app.debug:
