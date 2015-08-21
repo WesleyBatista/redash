@@ -247,9 +247,19 @@ class DataSourceAPI(BaseResource):
 
 
 class DataSourceListAPI(BaseResource):
+    
     def get(self):
-        data_sources = [ds.to_dict() for ds in models.DataSource.all()]
-        return data_sources
+
+        if "admin" in current_user.groups:
+            data_sources = [ds.to_dict() for ds in models.DataSource.all()]
+            return data_sources
+
+        elif "manage" in current_user.groups:
+            data_sources = [ds.to_dict() for ds in models.DataSource.filtered(current_user.countries)]
+            return data_sources
+
+        abort(403)
+
 
     @require_permission("admin")
     def post(self):
