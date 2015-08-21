@@ -332,13 +332,48 @@ class Area(BaseModel):
 
     @classmethod
     def get_countries(self, subregion_code):
-        query = self.select().where(self.subregion_code == subregion_code)
+        query = self.select(
+            Area.continent_code,
+            Area.continent_name,
+            Area.region_code,
+            Area.region_name,
+            Area.subregion_code,
+            Area.subregion_name,
+            Area.country_code,
+            Area.country_capital,
+            Area.country_name,
+            Area.currency_code
+            ).where(self.subregion_code == subregion_code).order_by(self.subregion_code, self.country_code).group_by(
+                self.continent_code,
+                self.continent_name,
+                self.region_code,
+                self.region_name,
+                self.subregion_code,
+                self.subregion_name,
+                self.country_code,
+                self.country_capital,
+                self.country_name,
+                self.currency_code
+            )
         return query
 
 
     @classmethod
     def get_all(self):
-        query = self.select()
+        query = self.select().order_by(self.region_code, self.subregion_code, self.country_code, self.city_code)
+        return query
+
+
+
+    @classmethod
+    def get_cities(self, country_code):
+        query = self.select().where(self.country_code == country_code).order_by(self.region_code, self.subregion_code, self.country_code, self.city_code)
+        return query
+
+
+    @classmethod
+    def get_city(self, city_code):
+        query = self.select().where(self.city_code == city_code).order_by(self.region_code, self.subregion_code, self.country_code, self.city_code)
         return query
 
 
