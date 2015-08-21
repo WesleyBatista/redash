@@ -429,6 +429,38 @@ class DataSource(BaseModel):
         return cls.select().order_by(cls.id.asc())
 
 
+    @classmethod
+    def filtered(self, geo_value):
+        
+        assert len(geo_value) >= 1, "regional have more than one areas"
+        # regional should have only one region
+
+        countriesStr = get_countries_str_for_where(geo_value)
+
+
+        queryStr = """
+            SELECT
+                data_sources.id AS id,
+                data_sources.name AS name,
+                data_sources.type AS type,
+                data_sources.options AS options,
+                data_sources.queue_name AS queue_name,
+                data_sources.scheduled_queue_name AS scheduled_queue_name,
+                data_sources.created_at AS created_at,
+                data_sources.geo_value AS geo_value
+            FROM
+                data_sources AS data_sources
+            WHERE
+                data_sources.geo_value = {geo_value}
+        """
+
+        queryStr = queryStr.format(group_name = "manage", geo_value = countriesStr)
+
+        results = self.raw(queryStr).execute()
+
+        return results
+
+
 class JSONField(peewee.TextField):
     def db_value(self, value):
         return json.dumps(value)
