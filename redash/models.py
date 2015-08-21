@@ -634,6 +634,19 @@ class Query(ModelTimestampsMixin, BaseModel):
 
         return q
 
+
+    @classmethod
+    def get_all_by_user(cls, user_id):
+        q = Query.select(Query, User, QueryResult.retrieved_at, QueryResult.runtime)\
+            .join(QueryResult, join_type=peewee.JOIN_LEFT_OUTER)\
+            .switch(Query).join(User)\
+            .where(Query.user==user_id)\
+            .where(Query.is_archived==False)\
+            .group_by(Query.id, User.id, QueryResult.id, QueryResult.retrieved_at, QueryResult.runtime)\
+            .order_by(cls.created_at.desc())
+
+        return q
+
     @classmethod
     def outdated_queries(cls):
         queries = cls.select(cls, QueryResult.retrieved_at, DataSource)\
