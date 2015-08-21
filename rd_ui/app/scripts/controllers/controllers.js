@@ -140,6 +140,10 @@
       {"key": "drafts", "name": "Drafts"}
     ];
 
+    if(!currentUser.isAdmin){
+      $scope.tabs.shift();
+    };
+
     $scope.$watch('selectedTab', function (tab) {
       if (tab) {
         $scope.$parent.pageTitle = tab.name;
