@@ -71,7 +71,7 @@
       $scope.user = User.get({id: $scope.userId}, function(user) {
 
         countries = Country.getCountriesDict(user.countries);
-        $scope.user.countries = countries[0];
+        $scope.user.countries = countries;
 
         $log.debug(countries);
       });

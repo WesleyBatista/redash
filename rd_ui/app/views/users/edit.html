@@ -18,10 +18,9 @@
 
                 <div class="form-group">
                     <label for="userCountries">Country</label>
-                      <ui-select sortable="true" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;" required>
-                        <ui-select-match placeholder="Select country...">{{$select.selected.code}} - {{$select.selected.name}}</ui-select-match>
-
-                        <ui-select-choices repeat="country in countries | filter: $select.search">
+                      <ui-select multiple sortable="true" close-on-select="false" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;" required>
+                        <ui-select-match placeholder="Select country...">{{$item.code}} - {{$item.name}}</ui-select-match>
+                        <ui-select-choices group-by="groupByRegionFn" repeat="country in countries | filter: $select.search">
                           <small ng-bind-html="country.code | trustAsHtml"></small>
                           <span ng-bind-html="country.name | trustAsHtml"></span>
                         </ui-select-choices>

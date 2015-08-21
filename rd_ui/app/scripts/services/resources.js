@@ -560,11 +560,13 @@
           countries = [];
 
           // just uncoment this if we start to allow receive multiple country_code
-          // _.each(data.countries, function(country){
-          //   countries.push(country.code);
-          // });
+          _.each(data.countries, function(country){
+            countries.push(country.code);
+          });
 
-          countries.push(data.countries.code);
+          //// just uncoment this if to allow receive single country_code
+          // countries.push(data.countries.code);
+
           newData.countries = countries;
 
           return newData;
