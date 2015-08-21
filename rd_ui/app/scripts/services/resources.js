@@ -669,7 +669,7 @@
 
   var Country = function(){
 
-    var countriesList = {
+    var countriesDict = {
       "AF": 'Afghanistan',
       "AX": 'Åland Islands',
       "AL": 'Albania',
@@ -915,20 +915,30 @@
       "ZW": 'Zimbabwe',
     };
 
+    var regionsDict = {
+      "SL": "South Latam",
+      "PL": "Pacific Latam",
+      "PE": "Peru",
+      "NL": "North Latam",
+      "ME": "Middle East",
+      "CO": "Colombia",
+      "BR": "Brazil"
+    };
+
 
     var actions = {
       getCountryName: function(countryCode){
-        return countriesList[countryCode];
+        return countriesDict[countryCode];
       },
       getCountriesArray: function(){
 
         var countriesArray = [];
-        for(country in countriesList){
+        for(country in countriesDict){
           countriesArray.push(country)
         }
         return countriesArray;
       },
-      getCountriesDict: function(countriesCodes){
+      getCountriesList: function(countriesCodes){
         var countries = [];
         var self = this;
         _.each(countriesCodes, function(countryCode){
@@ -940,15 +950,25 @@
         return countries;
 
       },
+      getRegionsList: function(){
+        var regionsArray = [];
+        for(regionCode in regionsDict){
+          regionDict = {};
+          regionDict["code"] = regionCode;
+          regionDict["name"] = regionsDict[regionCode];
+          regionsArray.push(regionDict)
+        }
+        return regionsArray;
+      },
       getCurrentUserCountries: function(){
         var self = this;
         countries  = currentUser.countries;
 
-        if(currentUser.groups.indexOf("admin") !== -1){
+        if(currentUser.isAdmin !== -1){
           countries = self.getCountriesArray()
         }
 
-        return self.getCountriesDict(countries);
+        return self.getCountriesList(countries);
       }
     }
 
