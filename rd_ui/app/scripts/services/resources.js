@@ -547,7 +547,7 @@
     return DataSourceResource;
   };
 
-  var User = function ($resource, $http, Country) {
+  var User = function ($resource, $http, Areas) {
     var actions = {
       'get': {'method': 'GET', 'cache': false, 'isArray': false},
       'getAll': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users'},
@@ -667,7 +667,7 @@
 
   }
 
-  var Country = function(){
+  var Areas = function(){
 
     var countriesDict = {
       "AF": 'Afghanistan',
@@ -927,7 +927,7 @@
 
 
     var actions = {
-      getCountryName: function(countryCode){
+      getAreasName: function(countryCode){
         return countriesDict[countryCode];
       },
       getCountriesArray: function(){
@@ -944,7 +944,7 @@
         _.each(countriesCodes, function(countryCode){
           countryObj = {};
           countryObj['code'] = countryCode;
-          countryObj['name'] = self.getCountryName(countryCode);
+          countryObj['name'] = self.getAreasName(countryCode);
           countries.push(countryObj);
         });
         return countries;
@@ -980,11 +980,11 @@
       .factory('QueryResult', ['$resource', '$timeout', '$q', QueryResult])
       .factory('Query', ['$resource', 'QueryResult', 'DataSource', Query])
       .factory('DataSource', ['$resource', DataSource])
-      .factory('User', ['$resource', '$http', 'Country', User])
+      .factory('User', ['$resource', '$http', 'Areas', User])
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])
       .factory('authHttpResponseInterceptor', ['$q','$location', '$log', '$window', 'growl', authHttpResponseInterceptor])
-      .factory('Country', [Country])
+      .factory('Areas', [Areas])
       ;
 })();
