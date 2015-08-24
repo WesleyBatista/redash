@@ -861,6 +861,16 @@ api.add_resource(AlertSubscriptionResource, '/api/alerts/<alert_id>/subscription
 api.add_resource(AlertListAPI, '/api/alerts', endpoint='alerts')
 
 
+def check_countries_permission(current_user_countries, kwargs_countries):
+    # dont let regionals add other managers
+
+    countries_check_permission = [bool(country in current_user_countries) for country in kwargs_countries]
+    message = "you have selected a country which you havent permission do add user"
+    if all(countries_check_permission):
+        return True
+    else:
+        return False
+
 
 
 class UserListAPI(BaseResource):
@@ -874,11 +884,10 @@ class UserListAPI(BaseResource):
 
         user = models.User(**kwargs)
 
-        # dont let regionals add other managers
-        countries_check_permission = [bool(country in current_user.countries) for country in kwargs["countries"]]
-        message = "you have selected a country which you havent permission do add user"
-        assert all(countries_check_permission), message
-        abort(403, message) 
+        if check_countries_permission(current_user.countries, kwargs_countries):
+            pass
+        else:
+            abort(403)
 
         try:
             user.save()
@@ -897,7 +906,12 @@ class UserListAPI(BaseResource):
             
             return [user.to_dict() for user in models.User.all()]
 
-        return [user.to_dict() for user in models.User.get_by_country(current_user.id, current_user.countries)]
+        if "manage" in current_user.groups:
+            
+            return [user.to_dict() for user in models.User.get_by_region(current_user.id, current_user.countries[0])]
+
+        abort(403)
+        
 
 
 class UserAPI(BaseResource):
@@ -915,6 +929,14 @@ class UserAPI(BaseResource):
 
     @require_permission('edit_user')
     def get(self, user_id):
+
+        allowed_countries = models.User.get_allowed_countries(current_user.countries[0])
+
+        if check_countries_permission(current_user.countries, allowed_countries):
+            pass
+        else:
+            abort(403)
+
         user = models.User.get_by_id(user_id)
         return user.to_dict()
 
@@ -927,6 +949,14 @@ class UserAPI(BaseResource):
         kwargs.pop("groups") # prevent users to change groups - only admin should change
         kwargs.pop('gravatar_url', None)
         logging.info(kwargs)
+
+
+        allowed_countries = models.User.get_allowed_countries(current_user.countries[0])
+
+        if check_countries_permission(current_user.countries, allowed_countries):
+            pass
+        else:
+            abort(403)
 
         update = models.User.update(**kwargs).where(models.User.id == user_id)
         update.execute()
