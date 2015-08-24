@@ -3,8 +3,8 @@
 
   var directives = angular.module('redash.directives');
 
-  directives.directive('editDashboardForm', ['Events', '$http', '$location', '$timeout', 'Dashboard',
-    function(Events, $http, $location, $timeout, Dashboard) {
+  directives.directive('editDashboardForm', ['Events', '$http', '$location', '$timeout', 'Dashboard', 'Areas', 'User',
+    function(Events, $http, $location, $timeout, Dashboard, Areas, User) {
       return {
         restrict: 'E',
         scope: {
@@ -30,6 +30,12 @@
           var gsItemTemplate = '<li data-widget-id="{id}" class="widget panel panel-default gs-w">' +
             '<div class="panel-heading">{name}' +
             '</div></li>';
+
+          // $scope.areas = Areas.getCurrentUserCountries();
+          var areas = Areas.getCountriesList(currentUser.countries);
+          $scope.areas = areas;
+          $scope.dashboard.country = areas[0];
+
 
           $scope.$watch('dashboard.widgets && dashboard.widgets.length', function(widgets_length) {
             $timeout(function() {
@@ -62,6 +68,7 @@
           $scope.saveDashboard = function() {
             $scope.saveInProgress = true;
             // TODO: we should use the dashboard service here.
+
             if ($scope.dashboard.id) {
               var positions = $(element).find('.gridster ul').data('gridster').serialize();
               var layout = [];
@@ -83,7 +90,8 @@
               layout = JSON.stringify(layout);
               $http.post('/api/dashboards/' + $scope.dashboard.id, {
                 'name': $scope.dashboard.name,
-                'layout': layout
+                'layout': layout,
+                'country': country
               }).success(function(response) {
                 $scope.dashboard = new Dashboard(response);
                 $scope.saveInProgress = false;
@@ -98,7 +106,8 @@
                 $(element).modal('hide');
                 $scope.dashboard = {
                   'name': null,
-                  'layout': null
+                  'layout': null,
+                  'country': null
                 };
                 $scope.saveInProgress = false;
                 $location.path('/dashboard/' + response.slug).replace();
@@ -112,7 +121,7 @@
     }
   ]);
 
-  directives.directive('newWidgetForm', ['Query', 'Widget', 'growl',
+  directives.directive('newWidgetForm', ['Query', 'Widget', 'growl', 'Areas',
     function(Query, Widget, growl) {
       return {
         restrict: 'E',
