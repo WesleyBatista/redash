@@ -223,9 +223,22 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
 
         return self._allowed_tables
 
-    @property
-    def allowed_countries(self):
-        return self.countries
+    @classmethod
+    def get_allowed_countries(self, subregion_code):
+
+        queryStr = """
+                select
+                    country_code
+                from
+                    areas
+                where
+                    subregion_code = '{subregion_code}'
+                group by
+                    1
+        """.format(subregion_code = subregion_code)
+
+        results = self.raw(queryStr).execute()
+        return results
 
     @classmethod
     def get_by_email(self, email):
@@ -267,10 +280,38 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
             FROM
                 users
             WHERE
-                ARRAY[{countries}]::varchar[] @> countries
+                countries @> ARRAY[{countries}]::varchar[]
                 AND id != {current_user_id}
                 AND NOT ( ARRAY['manage']::varchar[] @> groups )
         """.format(countries = countriesStr, current_user_id = current_user_id)
+
+
+        a = self.raw(queryStr).execute()
+        return a
+
+    @classmethod
+    def get_by_region(self, current_user_id, subregion_code):
+
+        queryStr = """
+            SELECT
+                *
+            FROM
+                users as users
+            left join (
+                select
+                    country_code
+                from
+                    areas
+                where
+                    subregion_code = '{subregion_code}'
+                group by
+                    1
+            ) areas
+            on users.countries[1] = areas.country_code
+            where
+                areas.country_code is not null
+                AND id != {current_user_id}
+        """.format(subregion_code = subregion_code, current_user_id = current_user_id)
 
 
         a = self.raw(queryStr).execute()
@@ -879,6 +920,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
     name = peewee.CharField(max_length=100)
     user_email = peewee.CharField(max_length=360, null=True)
     user = peewee.ForeignKeyField(User)
+    country = peewee.CharField()
     layout = peewee.TextField()
     dashboard_filters_enabled = peewee.BooleanField(default=False)
     is_archived = peewee.BooleanField(default=False, index=True)
@@ -921,6 +963,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
             'slug': self.slug,
             'name': self.name,
             'user_id': self._data['user'],
+            'country': self.country,
             'layout': layout,
             'dashboard_filters_enabled': self.dashboard_filters_enabled,
             'widgets': widgets_layout,
@@ -969,6 +1012,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
                 dashboards.name AS name,
                 users.email AS user_email,
                 users.id AS user_id,
+                dashboards.country AS country,
                 dashboards.layout AS layout,
                 dashboards.dashboard_filters_enabled AS dashboard_filters_enabled,
                 dashboards.is_archived AS is_archived,
