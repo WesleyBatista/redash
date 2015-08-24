@@ -10,6 +10,16 @@
                     <input type="text" class="form-control" placeholder="Dashboard Name" ng-model="dashboard.name">
                 </p>
 
+                <div class="form-group">
+                    <label>Location</label>
+                      <ui-select sortable="true" close-on-select="false" ng-model="$parent.dashboard.country" ng-disabled="disabled" style="width: 300px;" required>
+                        <ui-select-match placeholder="Select area...">{{$item.code}} - {{$item.name}}</ui-select-match>
+                        <ui-select-choices repeat="area in (areas) | filter: $select.search">
+                          <small ng-bind-html="area.code | trustAsHtml"></small>
+                          <span ng-bind-html="area.name | trustAsHtml"></span>
+                        </ui-select-choices>
+                      </ui-select>
+                </div>
                 <div class="gridster">
                     <ul></ul>
                 </div>
