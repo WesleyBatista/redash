@@ -580,6 +580,20 @@
     return UserResource;
   };
 
+
+  var AreaResource = function ($resource) {
+    var actions = {
+      'get': {'method': 'GET', 'cache': false, 'isArray': true},
+      'getCountries': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/areas/:subregion_code'},
+      'getCities': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/areas/:subregion_code/:country_code'},
+      'getCity': {'method': 'GET', 'cache': false, 'isArray': false, 'url': '/api/areas/:subregion_code/:country_code/:city_code'}
+    };
+
+    var AreaResource = $resource('/api/areas', {}, actions);
+
+    return AreaResource;
+  };
+
   var AlertSubscription = function ($resource) {
     var resource = $resource('/api/alerts/:alertId/subscriptions/:userId', {alertId: '@alert_id', userId: '@user.id'});
     return resource;
@@ -667,7 +681,7 @@
 
   }
 
-  var Areas = function(){
+  var Areas = function($q, $log, AreaResource){
 
     var countriesDict = {
       "AF": 'Afghanistan',
@@ -915,6 +929,8 @@
       "ZW": 'Zimbabwe',
     };
 
+    // console.log(AreaResource.getCountries({'subregion_code': 'AF'}));
+
     var regionsDict = {
       "SL": "South Latam",
       "PL": "Pacific Latam",
@@ -961,14 +977,34 @@
         return regionsArray;
       },
       getCurrentUserCountries: function(){
-        var self = this;
+
+
+        var self = this, response, d = $q.defer();
         countries  = currentUser.countries;
 
-        if(currentUser.isAdmin !== -1){
-          countries = self.getCountriesArray()
+        if(currentUser.isAdmin){
+          countries = self.getCountriesArray();
+          return self.getCountriesList(countries);
+        }
+        else{
+          // user is manager
+
+          _.each(currentUser.countries, function(subregion_code){
+
+            var countries = AreaResource.getCountries({'subregion_code': subregion_code});
+
+            _.each(countries, function(country){
+              console.log(country);
+              response.push(country["country_code"]);
+            });
+
+
+          });
+
+
         }
 
-        return self.getCountriesList(countries);
+
       }
     }
 
@@ -985,6 +1021,7 @@
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])
       .factory('authHttpResponseInterceptor', ['$q','$location', '$log', '$window', 'growl', authHttpResponseInterceptor])
-      .factory('Areas', [Areas])
+      .factory('AreaResource', ['$resource', AreaResource])
+      .factory('Areas', ['$q', '$log', 'AreaResource', Areas])
       ;
 })();
