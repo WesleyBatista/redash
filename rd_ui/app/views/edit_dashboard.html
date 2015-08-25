@@ -12,13 +12,15 @@
 
                 <div class="form-group">
                     <label>Location</label>
-                      <ui-select sortable="true" close-on-select="false" ng-model="$parent.dashboard.country" ng-disabled="disabled" style="width: 300px;" required>
-                        <ui-select-match placeholder="Select area...">{{$item.code}} - {{$item.name}}</ui-select-match>
-                        <ui-select-choices repeat="area in (areas) | filter: $select.search">
-                          <small ng-bind-html="area.code | trustAsHtml"></small>
-                          <span ng-bind-html="area.name | trustAsHtml"></span>
+                    {{dashboard.country}}
+                    {{user.countries}}
+                    <ui-select ng-model="dashboard.country" theme="bootstrap" reset-search-input="false" ng-required required>
+                        <ui-select-match placeholder="Search a location by name">{{$select.selected.code}} - {{$select.selected.name}}</ui-select-match>
+                        <ui-select-choices repeat="q in areas">
+                            <div ng-bind-html="q.name | highlight: $select.search | trustAsHtml"></div>
                         </ui-select-choices>
-                      </ui-select>
+                    </ui-select>
+
                 </div>
                 <div class="gridster">
                     <ul></ul>
