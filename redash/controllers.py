@@ -863,8 +863,12 @@ api.add_resource(AlertListAPI, '/api/alerts', endpoint='alerts')
 
 def check_countries_permission(current_user_countries, kwargs_countries):
     # dont let regionals add other managers
+    # block aditional of users to anothers countries
 
     countries_check_permission = [bool(country in current_user_countries) for country in kwargs_countries]
+    logging.info(current_user_countries)
+    logging.info(kwargs_countries)
+    logging.info(countries_check_permission)
     message = "you have selected a country which you havent permission do add user"
     if all(countries_check_permission):
         return True
@@ -884,7 +888,9 @@ class UserListAPI(BaseResource):
 
         user = models.User(**kwargs)
 
-        if check_countries_permission(current_user.countries, kwargs_countries):
+        allowed_countries = models.User.get_allowed_countries(current_user.countries[0])
+
+        if check_countries_permission(current_user.countries, allowed_countries):
             pass
         else:
             abort(403)
@@ -930,6 +936,9 @@ class UserAPI(BaseResource):
     @require_permission('edit_user')
     def get(self, user_id):
 
+
+        if bool(int(current_user.id) == int(user_id)): abort(403)
+
         allowed_countries = models.User.get_allowed_countries(current_user.countries[0])
 
         if check_countries_permission(current_user.countries, allowed_countries):
@@ -937,23 +946,31 @@ class UserAPI(BaseResource):
         else:
             abort(403)
 
-        user = models.User.get_by_id(user_id)
-        return user.to_dict()
+
+        try:
+            user = models.User.get_by_id(user_id)
+            return user.to_dict()
+        except models.User.DoesNotExist, e:
+            abort(404)
+            
+
+        
 
     @require_permission('edit_user')
     def post(self, user_id):
+
+        if bool(int(current_user.id) == int(user_id)): abort(403)
+
         kwargs = request.get_json(force=True)
         if 'options' in kwargs:
             kwargs['options'] = json.dumps(kwargs['options'])
         kwargs.pop('id', None)
         kwargs.pop("groups") # prevent users to change groups - only admin should change
         kwargs.pop('gravatar_url', None)
-        logging.info(kwargs)
-
 
         allowed_countries = models.User.get_allowed_countries(current_user.countries[0])
 
-        if check_countries_permission(current_user.countries, allowed_countries):
+        if check_countries_permission(current_user.countries, kwargs['countries']):
             pass
         else:
             abort(403)
