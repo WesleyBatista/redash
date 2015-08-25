@@ -226,18 +226,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     @classmethod
     def get_allowed_countries(self, subregion_code):
 
-        queryStr = """
-                select
-                    country_code
-                from
-                    areas
-                where
-                    subregion_code = '{subregion_code}'
-                group by
-                    1
-        """.format(subregion_code = subregion_code)
-
-        results = self.raw(queryStr).execute()
+        results = list(set([a.country_code for a in Area.select().where(Area.subregion_code == subregion_code)]))
         return results
 
     @classmethod
