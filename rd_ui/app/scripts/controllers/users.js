@@ -60,7 +60,15 @@
     $scope.$parent.pageTitle = "Users";
     $scope.userId = $routeParams.userId;
 
-    $scope.areas = Areas.getCurrentUserCountries();
+    // $scope.areas = Areas.getCurrentUserCountries();
+    currentUserCountries = Areas.getCurrentUserCountries();
+
+    console.log(currentUserCountries);
+
+    $scope.areas = [];
+    $scope.areas = currentUserCountries;
+
+
     if ($scope.userId === "new") {
       Events.record(currentUser, 'view', 'page', 'users/new');
       $scope.user = new User({options: {}});
@@ -72,7 +80,7 @@
         countries = Areas.getCountriesList(user.countries);
         $scope.user.countries = countries;
 
-        $log.debug(countries);
+        // $log.debug(countries);
       });
     }
 
