@@ -163,7 +163,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     DEFAULT_GROUPS = ['default']
 
     id = peewee.PrimaryKeyField()
-    parent_user_id = peewee.IntegerField()
+    parent_user_id = peewee.IntegerField(null=True)
     name = peewee.CharField(max_length=320)
     email = peewee.CharField(max_length=320, index=True, unique=True)
     password_hash = peewee.CharField(max_length=128, null=True)
