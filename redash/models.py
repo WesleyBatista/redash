@@ -170,7 +170,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
     countries = ArrayField(peewee.CharField, null=True)
     api_key = peewee.CharField(max_length=40, unique=True)
-    status = peewee.BooleanField()
+    status = peewee.BooleanField(null=True)
 
     class Meta:
         db_table = 'users'

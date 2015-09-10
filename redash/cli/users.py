@@ -22,7 +22,9 @@ def grant_admin(email):
 @manager.option('--google', dest='google_auth', action="store_true", default=False, help="user uses Google Auth to login")
 @manager.option('--password', dest='password', default=None, help="Password for users who don't use Google Auth (leave blank for prompt).")
 @manager.option('--groups', dest='groups', default=models.User.DEFAULT_GROUPS, help="Comma seperated list of groups (leave blank for default).")
-def create(email, name, groups, is_admin=False, google_auth=False, password=None):
+@manager.option('--parent_user_id', dest='parent_user_id', default=None, help="Set the user_id of who this users belongs to")
+@manager.option('--status', dest='status', default=False, help="Set the status of the user. Defaults to False")
+def create(email, name, groups, is_admin=False, google_auth=False, password=None, parent_user_id=None, status=False):
     print "Creating user (%s, %s)..." % (email, name)
     print "Admin: %r" % is_admin
     print "Login with Google Auth: %r\n" % google_auth
@@ -33,7 +35,7 @@ def create(email, name, groups, is_admin=False, google_auth=False, password=None
     if is_admin:
         groups += ['admin']
 
-    user = models.User(email=email, name=name, groups=groups)
+    user = models.User(email=email, name=name, groups=groups, parent_user_id=parent_user_id, status=status)
     if not google_auth:
         password = password or prompt_pass("Password")
         user.hash_password(password)
