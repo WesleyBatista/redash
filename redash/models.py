@@ -139,7 +139,7 @@ class Group(BaseModel):
     name = peewee.CharField(max_length=100)
     permissions = ArrayField(peewee.CharField, default=DEFAULT_PERMISSIONS)
     tables = ArrayField(peewee.CharField)
-    countries = ArrayField(peewee.CharField)
+    countries = ArrayField(peewee.CharField, null=True)
     created_at = DateTimeTZField(default=datetime.datetime.now)
 
     class Meta:
@@ -151,7 +151,7 @@ class Group(BaseModel):
             'name': self.name,
             'permissions': self.permissions,
             'tables': self.tables,
-            'countries': self.countries,
+            'countries': self.countriesStr,
             'created_at': self.created_at
         }
 
@@ -168,7 +168,7 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     email = peewee.CharField(max_length=320, index=True, unique=True)
     password_hash = peewee.CharField(max_length=128, null=True)
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
-    countries = ArrayField(peewee.CharField)
+    countries = ArrayField(peewee.CharField, null=True)
     api_key = peewee.CharField(max_length=40, unique=True)
     status = peewee.BooleanField()
 
@@ -1156,7 +1156,7 @@ class Event(BaseModel):
         return event
 
 
-all_models = (DataSource, User, QueryResult, Query, Alert, Dashboard, Visualization, Widget, ActivityLog, Group, Event)
+all_models = (DataSource, Area, User, QueryResult, Query, Alert, Dashboard, Visualization, Widget, ActivityLog, Group, Event)
 
 
 def init_db():
