@@ -54,7 +54,7 @@
 
   };
 
-  var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User, Areas) {
+  var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User, AreasResource) {
 
     $log.debug("we are on UserCtrl");
 
@@ -62,10 +62,10 @@
     $scope.userId = $routeParams.userId;
     $scope.areas = [];
 
-    // $scope.areas = Areas.getCurrentUserCountries();
+    // $scope.areas = AreasResource.getCurrentUserCountries();
     currentUserCountries = [];
 
-    Areas.getCurrentUserCountries().then(function(countries){
+    AreasResource.getCurrentUserCountries().then(function(countries){
       currentUserCountries = countries;
       $scope.areas = countries;
       $log.info($scope.areas);
@@ -80,7 +80,7 @@
       Events.record(currentUser, 'view', 'user', $scope.userId);
       $scope.user = User.get({id: $scope.userId}, function(user) {
 
-        countries = Areas.getCountriesList(user.countries);
+        countries = AreasResource.getCountriesList(user.countries);
         $scope.user.countries = countries;
 
         $log.debug(countries);
@@ -103,7 +103,7 @@
 
           // CODE FOR SINGLE COUNTRY
           $scope.user = User.get({id: $scope.userId}, function(user){
-            countries = Areas.getCountriesList(user.countries);
+            countries = AreasResource.getCountriesList(user.countries);
             $scope.user.countries = countries[0];
           });
           // END
@@ -122,5 +122,5 @@
 
   angular.module('redash.controllers')
     .controller('UsersCtrl', ['$scope', '$log', 'User', UsersCtrl])
-    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'growl', 'Events', 'User', 'Areas', UserCtrl])
+    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'growl', 'Events', 'User', 'AreasResource', UserCtrl])
 })();
