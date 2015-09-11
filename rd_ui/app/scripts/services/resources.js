@@ -997,15 +997,14 @@
         var self = this, results = response = [], d = $q.defer();
         countries  = currentUser.countries;
 
+        var deferred = $q.defer();
+
         if(currentUser.isAdmin){
           countries = self.getCountriesArray();
-          return self.getCountriesList(countries);
+          response = self.getCountriesList(countries);
+          deferred.resolve(response);
         }
         else{
-          // user is manager
-
-
-          var deferred = $q.defer();
 
           _.each(currentUser.countries, function(subregion_code){
 
@@ -1023,10 +1022,10 @@
 
           });
 
-          return deferred.promise;
 
         }
 
+        return deferred.promise;
 
       }
     }
