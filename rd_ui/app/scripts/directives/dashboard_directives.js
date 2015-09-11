@@ -3,8 +3,8 @@
 
   var directives = angular.module('redash.directives');
 
-  directives.directive('editDashboardForm', ['Events', '$http', '$location', '$timeout', 'Dashboard', 'Areas', 'User',
-    function(Events, $http, $location, $timeout, Dashboard, Areas, User) {
+  directives.directive('editDashboardForm', ['Events', '$http', '$location', '$timeout', 'Dashboard', 'AreasResource', 'User',
+    function(Events, $http, $location, $timeout, Dashboard, AreasResource, User) {
       return {
         restrict: 'E',
         scope: {
@@ -31,8 +31,8 @@
             '<div class="panel-heading">{name}' +
             '</div></li>';
 
-          // $scope.areas = Areas.getCurrentUserCountries();
-          var areas = Areas.getCountriesList(currentUser.countries);
+          // $scope.areas = AreasResource.getCurrentUserCountries();
+          var areas = AreasResource.getCountriesList(currentUser.countries);
           $scope.areas = areas;
           $scope.dashboard.country = areas[0];
 
@@ -121,7 +121,7 @@
     }
   ]);
 
-  directives.directive('newWidgetForm', ['Query', 'Widget', 'growl', 'Areas',
+  directives.directive('newWidgetForm', ['Query', 'Widget', 'growl', 'AreasResource',
     function(Query, Widget, growl) {
       return {
         restrict: 'E',
