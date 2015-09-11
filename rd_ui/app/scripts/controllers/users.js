@@ -57,22 +57,25 @@
   var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User, Areas) {
 
     $log.debug("we are on UserCtrl");
+
     $scope.$parent.pageTitle = "Users";
     $scope.userId = $routeParams.userId;
+    $scope.areas = [];
 
     // $scope.areas = Areas.getCurrentUserCountries();
-    currentUserCountries = Areas.getCurrentUserCountries();
+    currentUserCountries = [];
 
-    console.log(currentUserCountries);
-
-    $scope.areas = [];
-    $scope.areas = currentUserCountries;
-
+    Areas.getCurrentUserCountries().then(function(countries){
+      currentUserCountries = countries;
+      $scope.areas = countries;
+      $log.info($scope.areas);
+    });
 
     if ($scope.userId === "new") {
       Events.record(currentUser, 'view', 'page', 'users/new');
       $scope.user = new User({options: {}});
-      // $log.debug($scope.countries);
+      $log.debug($scope.countries);
+
     } else {
       Events.record(currentUser, 'view', 'user', $scope.userId);
       $scope.user = User.get({id: $scope.userId}, function(user) {
@@ -80,9 +83,10 @@
         countries = Areas.getCountriesList(user.countries);
         $scope.user.countries = countries;
 
-        // $log.debug(countries);
+        $log.debug(countries);
       });
     }
+
 
     $scope.saveChanges = function() {
       if ($scope.user.name === undefined || $scope.user.name === '') {
