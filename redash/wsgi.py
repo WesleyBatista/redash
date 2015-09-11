@@ -16,7 +16,7 @@ app = Flask(__name__,
             static_folder=settings.STATIC_ASSETS_PATH,
             static_path='/static')
 
-app.debug = True
+# app.debug = True
 
 api = Api(app)
 init_admin(app)
@@ -29,7 +29,7 @@ db.init_app(app)
 mail.init_app(app)
 
 app.config.update(
-    DEBUG=True,
+    # DEBUG=True,
     SECRET_KEY='how you load your config, there',
     DEBUG_TB_INTERCEPT_REDIRECTS = False
 )
