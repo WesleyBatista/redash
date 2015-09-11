@@ -580,18 +580,33 @@
     return UserResource;
   };
 
+  var defaultActions = {
+        'get':    {method:'GET'},
+        'save':   {method:'POST'},
+        'query':  {method:'GET', isArray:true},
+        'remove': {method:'DELETE'},
+        'delete': {method:'DELETE'}
+  };
 
-  var AreaResource = function ($resource) {
-    var actions = {
-      'get': {'method': 'GET', 'cache': false, 'isArray': true},
-      'getCountries': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/areas/:subregion_code'},
-      'getCities': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/areas/:subregion_code/:country_code'},
-      'getCity': {'method': 'GET', 'cache': false, 'isArray': false, 'url': '/api/areas/:subregion_code/:country_code/:city_code'}
-    };
+  var SubregionResource = function($resource){
 
-    var AreaResource = $resource('/api/areas', {}, actions);
+    var actions = defaultActions;
+    return $resource("/api/areas/:subregion_code", {subregion_code: '@subregion_code'}, actions);
 
-    return AreaResource;
+  };
+
+  var CountryResource = function($resource){
+
+    var actions = defaultActions;
+    return $resource("/api/areas/:subregion_code/:country_code", {subregion_code: '@subregion_code', country_code:'@country_code'}, actions);
+
+  };
+
+  var CityResource = function($resource){
+
+    var actions = defaultActions;
+    return $resource("/api/areas/:subregion_code/:country_code", {subregion_code: '@subregion_code', country_code:'@country_code', city_code:'@city_code'}, actions);
+
   };
 
   var AlertSubscription = function ($resource) {
@@ -681,7 +696,8 @@
 
   }
 
-  var Areas = function($q, $log, AreaResource){
+
+  var AreasResource = function($q, $log, SubregionResource){
 
     var countriesDict = {
       "AF": 'Afghanistan',
@@ -978,8 +994,7 @@
       },
       getCurrentUserCountries: function(){
 
-
-        var self = this, response, d = $q.defer();
+        var self = this, results = response = [], d = $q.defer();
         countries  = currentUser.countries;
 
         if(currentUser.isAdmin){
@@ -989,18 +1004,26 @@
         else{
           // user is manager
 
+
+          var deferred = $q.defer();
+
           _.each(currentUser.countries, function(subregion_code){
 
-            var countries = AreaResource.getCountries({'subregion_code': subregion_code});
+            SubregionResource.query({'subregion_code': subregion_code}, function(countries){
 
-            _.each(countries, function(country){
-              console.log(country);
-              response.push(country["country_code"]);
+              _.each(countries, function(country){
+                results.push(country["country_code"]);
+              });
+
+              response = self.getCountriesList(results);
+
+              deferred.resolve(response);
+
             });
-
 
           });
 
+          return deferred.promise;
 
         }
 
@@ -1016,12 +1039,15 @@
       .factory('QueryResult', ['$resource', '$timeout', '$q', QueryResult])
       .factory('Query', ['$resource', 'QueryResult', 'DataSource', Query])
       .factory('DataSource', ['$resource', DataSource])
-      .factory('User', ['$resource', '$http', 'Areas', User])
+      .factory('User', ['$resource', '$http', 'AreasResource', User])
       .factory('Alert', ['$resource', '$http', Alert])
       .factory('AlertSubscription', ['$resource', AlertSubscription])
       .factory('Widget', ['$resource', 'Query', Widget])
       .factory('authHttpResponseInterceptor', ['$q','$location', '$log', '$window', 'growl', authHttpResponseInterceptor])
-      .factory('AreaResource', ['$resource', AreaResource])
-      .factory('Areas', ['$q', '$log', 'AreaResource', Areas])
+      .factory('SubregionResource', ['$resource', SubregionResource])
+      .factory('CountryResource', ['$resource', CountryResource])
+      .factory('CityResource', ['$resource', CityResource])
+      .factory('SubregionResource', ['$resource', SubregionResource])
+      .factory('AreasResource', ['$q', '$log', 'SubregionResource', AreasResource])
       ;
 })();
