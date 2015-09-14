@@ -1,13 +1,21 @@
 (function () {
-  var UsersCtrl = function ($scope, $log, User) {
 
-    // $log.debug("we are on UsersCtrl");
+  var UsersCtrl = function ($scope, $log, $q, User) {
 
+    var updateSmartTable = function(){
+
+       if($scope.selectedTab.key == "orphans"){
+        $scope.users = $scope.orphanUsers;
+       }else{
+        $scope.users = $scope.allUsers;
+       };
+
+    };
+
+    $scope.allUsers = [];
+    $scope.orphanUsers = [];
     $scope.users = [];
 
-    User.getAll(function(users){
-      $scope.users = users;
-    });
 
     $scope.gridConfig = {
       isPaginationEnabled: true,
@@ -26,14 +34,6 @@
         'label': 'Email',
         'cellTemplate': '{{dataRow.email}}'
       },
-      // {
-      //   'label': 'Parent User ID',
-      //   'cellTemplate': '{{dataRow.parent_user_id}}'
-      // },
-      // {
-      //   'label': 'Groups',
-      //   'cellTemplate': '{{dataRow.groups}}'
-      // },
       {
         'label': 'Countries',
         'cellTemplate': '{{dataRow.countries}}'
@@ -52,23 +52,52 @@
       }
     ];
 
+
+    $scope.tabs = [
+      {"key": "!", "name": "Users"},
+      {"key": "orphans", "name": "Orphans"}
+    ];
+
+
+
+    allUsersPromise = User.getAll().$promise;
+    orphanUsersPromise = User.getOrphans().$promise;
+
+    $q.all([allUsersPromise, orphanUsersPromise]).then(function(results){
+      $scope.allUsers = results[0];
+      $scope.orphanUsers = results[1];
+
+
+      $scope.$watch('selectedTab', function (tab) {
+        if (tab) {
+          $scope.$parent.pageTitle = tab.name;
+        };
+
+        if (!$scope.selectedTab) {
+          return false;
+        }
+
+        updateSmartTable();
+
+      });
+    });
+
+
   };
 
-  var UserCtrl = function ($scope, $routeParams, $location, $log, growl, Events, User, AreasResource) {
-
-    $log.debug("we are on UserCtrl");
+  var UserCtrl = function ($scope, $routeParams, $location, $log, $filter, growl, Events, User, AreasResource) {
 
     $scope.$parent.pageTitle = "Users";
     $scope.userId = $routeParams.userId;
-    $scope.areas = [];
+    $scope.areasChoices = [];
 
-    // $scope.areas = AreasResource.getCurrentUserCountries();
     currentUserCountries = [];
 
     AreasResource.getCurrentUserCountries().then(function(countries){
       currentUserCountries = countries;
-      $scope.areas = countries;
-      $log.info($scope.areas);
+      AreasResource.getCountriesList(currentUserCountries).then(function(countriesList){
+        $scope.areasChoices = countriesList;
+      });
     });
 
     if ($scope.userId === "new") {
@@ -80,10 +109,10 @@
       Events.record(currentUser, 'view', 'user', $scope.userId);
       $scope.user = User.get({id: $scope.userId}, function(user) {
 
-        countries = AreasResource.getCountriesList(user.countries);
-        $scope.user.countries = countries;
+        AreasResource.getCountriesList(user.countries).then(function(countriesList){
+          $scope.user.countries = countriesList;
+        });
 
-        $log.debug(countries);
       });
     }
 
@@ -103,8 +132,9 @@
 
           // CODE FOR SINGLE COUNTRY
           $scope.user = User.get({id: $scope.userId}, function(user){
-            countries = AreasResource.getCountriesList(user.countries);
-            $scope.user.countries = countries[0];
+            AreasResource.getCountriesList(user.countries).then(function(countriesList){
+              $scope.user.countries = countriesList[0];
+            });
           });
           // END
 
@@ -121,6 +151,6 @@
   };
 
   angular.module('redash.controllers')
-    .controller('UsersCtrl', ['$scope', '$log', 'User', UsersCtrl])
-    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', 'growl', 'Events', 'User', 'AreasResource', UserCtrl])
+    .controller('UsersCtrl', ['$scope', '$log', '$q', 'User', UsersCtrl])
+    .controller('UserCtrl', ['$scope', '$routeParams', '$location', '$log', '$filter', 'growl', 'Events', 'User', 'AreasResource', UserCtrl])
 })();
