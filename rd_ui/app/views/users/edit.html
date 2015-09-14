@@ -22,7 +22,7 @@
                     <label>Location</label>
                       <ui-select multiple sortable="true" close-on-select="false" ng-model="$parent.user.countries" ng-disabled="disabled" style="width: 300px;" required>
                         <ui-select-match placeholder="Select area...">{{$item.code}} - {{$item.name}}</ui-select-match>
-                        <ui-select-choices repeat="area in (areas) | filter: $select.search">
+                        <ui-select-choices repeat="area in areasChoices | filter: $select.search">
                           <small ng-bind-html="area.code | trustAsHtml"></small>
                           <span ng-bind-html="area.name | trustAsHtml"></span>
                         </ui-select-choices>
