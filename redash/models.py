@@ -926,7 +926,7 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
     name = peewee.CharField(max_length=100)
     user_email = peewee.CharField(max_length=360, null=True)
     user = peewee.ForeignKeyField(User)
-    country = peewee.CharField()
+    country = peewee.CharField(null=True)
     layout = peewee.TextField()
     dashboard_filters_enabled = peewee.BooleanField(default=False)
     is_archived = peewee.BooleanField(default=False, index=True)
