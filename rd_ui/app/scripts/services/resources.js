@@ -552,6 +552,7 @@
       'get': {'method': 'GET', 'cache': false, 'isArray': false},
       'getAll': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users'},
       'getChilds': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/childs'},
+      'getOrphans': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/orphans'},
       'getPermissions': {'method': 'GET', 'cache': false, 'isArray': true, 'url': '/api/users/:id/permissions'},
       'save': {
         method: 'POST',
@@ -972,6 +973,7 @@
       },
       getCountriesList: function(countriesCodes){
         var countries = [];
+        var deferred = $q.defer();
         var self = this;
         _.each(countriesCodes, function(countryCode){
           countryObj = {};
@@ -979,9 +981,11 @@
           countryObj['name'] = self.getAreasName(countryCode);
           countries.push(countryObj);
         });
-        return countries;
+        deferred.resolve(countries);
+        return deferred.promise;
 
       },
+
       getRegionsList: function(){
         var regionsArray = [];
         for(regionCode in regionsDict){
@@ -1001,8 +1005,9 @@
 
         if(currentUser.isAdmin){
           countries = self.getCountriesArray();
-          response = self.getCountriesList(countries);
-          deferred.resolve(response);
+          self.getCountriesList(countries).then(function(countriesList){
+            deferred.resolve(countriesList);
+          });
         }
         else{
 
@@ -1013,10 +1018,9 @@
               _.each(countries, function(country){
                 results.push(country["country_code"]);
               });
-
-              response = self.getCountriesList(results);
-
-              deferred.resolve(response);
+              self.getCountriesList(results).then(function(countries){
+                deferred.resolve(results);
+              });
 
             });
 
