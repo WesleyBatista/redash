@@ -279,6 +279,23 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
         return a
 
     @classmethod
+    def get_orphans(self):
+
+        queryStr = """
+            select
+            *
+            from
+            users
+            where
+            countries = '{}'
+            or countries is NULL
+            and not(groups @> ('{admin}'::varchar[]))
+        """
+
+        a = self.raw(queryStr).execute()
+        return a
+
+    @classmethod
     def get_by_region(self, current_user_id, subregion_code):
 
         queryStr = """
