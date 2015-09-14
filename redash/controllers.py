@@ -920,6 +920,18 @@ class UserListAPI(BaseResource):
         
 
 
+
+
+class OrphansUsersAPI(BaseResource):
+
+    @require_permission('create_user')
+    def get(self):
+        
+        return [user.to_dict() for user in models.User.get_orphans()]
+
+        
+
+
 class UserAPI(BaseResource):
 
     """
@@ -988,6 +1000,7 @@ class UserAPI(BaseResource):
         user.delete_instance()
 
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
+api.add_resource(OrphansUsersAPI, '/api/users/orphans', endpoint='orphans_users')
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
 
