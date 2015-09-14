@@ -32,9 +32,10 @@
             '</div></li>';
 
           // $scope.areas = AreasResource.getCurrentUserCountries();
-          var areas = AreasResource.getCountriesList(currentUser.countries);
-          $scope.areas = areas;
-          $scope.dashboard.country = areas[0];
+          var areas = AreasResource.getCountriesList(currentUser.countries).then(function(data){
+            $scope.areas = data;
+            $scope.dashboard.country = data[0];
+          });
 
 
           $scope.$watch('dashboard.widgets && dashboard.widgets.length', function(widgets_length) {
