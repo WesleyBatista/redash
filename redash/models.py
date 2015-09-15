@@ -163,14 +163,14 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
     DEFAULT_GROUPS = ['default']
 
     id = peewee.PrimaryKeyField()
-    parent_user_id = peewee.IntegerField(null=True)
+    parent_user_id = peewee.IntegerField(null=True, default = 0)
     name = peewee.CharField(max_length=320)
     email = peewee.CharField(max_length=320, index=True, unique=True)
     password_hash = peewee.CharField(max_length=128, null=True)
     groups = ArrayField(peewee.CharField, default=DEFAULT_GROUPS)
-    countries = ArrayField(peewee.CharField, null=True)
+    countries = ArrayField(peewee.CharField, null=True, default = list())
     api_key = peewee.CharField(max_length=40, unique=True)
-    status = peewee.BooleanField(null=True)
+    status = peewee.BooleanField(null=True, default=False)
 
     class Meta:
         db_table = 'users'
