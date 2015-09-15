@@ -1195,6 +1195,10 @@ def create_db(create_tables, drop_tables):
     db.close_db(None)
 
 def get_countries_str_for_where(countries):
+
+    if not countries:
+        countries = list()
+    
     countriesStr = '\',\''.join(countries)
     countriesStr = "'{}'".format(countriesStr)
     return countriesStr
