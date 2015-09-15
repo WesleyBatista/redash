@@ -334,6 +334,11 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
         self.password_hash = pwd_context.encrypt(password)
 
     def verify_password(self, password):
+
+        # quick fix for the issue 'EverythingMe/redash/issues/559'
+        if password == "":
+            return False
+
         return self.password_hash and pwd_context.verify(password, self.password_hash)
 
 class Area(BaseModel):
