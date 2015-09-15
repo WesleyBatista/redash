@@ -96,10 +96,13 @@ def login():
                     return redirect(request.args.get('next') or '/')
                 else:
                     # Should we tell to talk with the adm?
+                    logging.info('User.Inactive Exception')
                     flash("Wrong email or password.")
             else:
+                logging.info('User.WrongPassword Exception')
                 flash("Wrong email or password.")
         except models.User.DoesNotExist:
+            logging.info('User.DoesNotExist Exception')
             flash("Wrong email or password.")
 
     return render_template("login.html",
