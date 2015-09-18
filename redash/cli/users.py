@@ -33,7 +33,7 @@ def create(email, name, groups, is_admin=False, google_auth=False, password=None
         groups.remove('') # in case it was empty string
 
     if is_admin:
-        groups += ['admin']
+        groups += ['admin', 'manage']
 
     if status=="true":
         status = True
