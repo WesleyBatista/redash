@@ -35,6 +35,9 @@ def create(email, name, groups, is_admin=False, google_auth=False, password=None
     if is_admin:
         groups += ['admin']
 
+    if status=="true":
+        status = True
+    
     user = models.User(email=email, name=name, groups=groups, parent_user_id=parent_user_id, status=status)
     if not google_auth:
         password = password or prompt_pass("Password")
