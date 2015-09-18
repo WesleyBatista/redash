@@ -592,6 +592,7 @@
   var SubregionResource = function($resource){
 
     var actions = defaultActions;
+    actions['getSubregions'] = {method:'GET', isArray:true, url: '/api/areas/subregions'}
     return $resource("/api/areas/:subregion_code", {subregion_code: '@subregion_code'}, actions);
 
   };
@@ -599,6 +600,7 @@
   var CountryResource = function($resource){
 
     var actions = defaultActions;
+    actions['getCountries'] = {method:'GET', isArray:true, url: '/api/areas/countries'}
     return $resource("/api/areas/:subregion_code/:country_code", {subregion_code: '@subregion_code', country_code:'@country_code'}, actions);
 
   };
@@ -606,6 +608,7 @@
   var CityResource = function($resource){
 
     var actions = defaultActions;
+    actions['getCities'] = {method:'GET', isArray:true, url: '/api/areas/cities'}
     return $resource("/api/areas/:subregion_code/:country_code", {subregion_code: '@subregion_code', country_code:'@country_code', city_code:'@city_code'}, actions);
 
   };
@@ -698,7 +701,7 @@
   }
 
 
-  var AreasResource = function($q, $log, SubregionResource){
+  var AreasResource = function($q, $log, SubregionResource, CountryResource, CityResource){
 
     var countriesDict = {
       "AF": 'Afghanistan',
@@ -946,7 +949,7 @@
       "ZW": 'Zimbabwe',
     };
 
-    // console.log(AreaResource.getCountries({'subregion_code': 'AF'}));
+    console.log(CountryResource.getCountries({'subregion_code': 'AF'}));
 
     var regionsDict = {
       "SL": "South Latam",
@@ -1005,6 +1008,7 @@
 
         if(currentUser.isAdmin){
           countries = self.getCountriesArray();
+          $log.debug(countries);
           self.getCountriesList(countries).then(function(countriesList){
             deferred.resolve(countriesList);
           });
@@ -1051,6 +1055,6 @@
       .factory('CountryResource', ['$resource', CountryResource])
       .factory('CityResource', ['$resource', CityResource])
       .factory('SubregionResource', ['$resource', SubregionResource])
-      .factory('AreasResource', ['$q', '$log', 'SubregionResource', AreasResource])
+      .factory('AreasResource', ['$q', '$log', 'SubregionResource', 'CountryResource', 'CityResource', AreasResource])
       ;
 })();
