@@ -172,8 +172,22 @@ wget -O /etc/init.d/redash_supervisord $FILES_BASE_URL"redash_supervisord_init"
 add_service "redash_supervisord"
 
 # Nginx setup
-rm /etc/nginx/sites-enabled/default
+
+DIRECTORY="/etc/nginx/sites-enabled/"
+if [ ! -d "$DIRECTORY" ]; then
+    mkdir -p $DIRECTORY
+fi
+DIRECTORY="/etc/nginx/sites-available/"
+if [ ! -d "$DIRECTORY" ]; then
+    mkdir -p $DIRECTORY
+fi
+
+NGINX_DEFAULT_CONFIG="/etc/nginx/sites-enabled/default"
+if [ ! -f $NGINX_DEFAULT_CONFIG ]; then
+    rm $NGINX_DEFAULT_CONFIG
+fi
+
 wget -O /etc/nginx/sites-available/redash $FILES_BASE_URL"nginx_redash_site"
 ln -nfs /etc/nginx/sites-available/redash /etc/nginx/sites-enabled/redash
+echo "Please, check /etc/nginx/sites-enabled/redash to see the changes needed in /etc/nginx/nginx.conf"
 service nginx restart
-
