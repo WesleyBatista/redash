@@ -1015,6 +1015,20 @@ class AreaListAPI(BaseResource):
         return [area.to_dict() for area in models.Area.get_all()]
 
 
+class AreaSubregionsListAPI(BaseResource):
+    
+    def get(self):
+
+        return [area.to_dict() for area in models.Area.get_subregions_list()]
+
+
+class AreaCountriesListAPI(BaseResource):
+    
+    def get(self):
+
+        return [area.to_dict() for area in models.Area.get_countries_list()]
+
+
 class AreaCountryListAPI(BaseResource):
     
     def get(self, subregion_code):
@@ -1034,7 +1048,12 @@ class AreaCityAPI(BaseResource):
     def get(self, subregion_code, country_code, city_code):
         return [area.to_dict() for area in models.Area.get_city(city_code)]
 
+
+
 api.add_resource(AreaListAPI, '/api/areas', endpoint='areas')
+api.add_resource(AreaSubregionsListAPI, '/api/areas/subregions', endpoint='areas_subregions_list')
+api.add_resource(AreaCountriesListAPI, '/api/areas/countries', endpoint='areas_countries_list')
+api.add_resource(AreaListAPI, '/api/areas/cities', endpoint='areas_cities_list')
 api.add_resource(AreaCountryListAPI, '/api/areas/<subregion_code>', endpoint='areas_countries')
 api.add_resource(AreaCityListAPI, '/api/areas/<subregion_code>/<country_code>', endpoint='areas_cities')
 api.add_resource(AreaCityAPI, '/api/areas/<subregion_code>/<country_code>/<city_code>', endpoint='areas_city')
