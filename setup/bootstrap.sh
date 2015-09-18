@@ -134,7 +134,7 @@ fi
 cd /opt/redash/current
 # TODO: make sure user created only once
 # TODO: generate temp password and print to screen
-sudo -u redash bin/run ./manage.py users create --admin --password admin "Admin" "admin"
+sudo -u redash bin/run ./manage.py users create --admin --password admin --status true "Admin" "admin"
 
 # Create re:dash read only pg user & setup data source
 pg_user_exists=0
