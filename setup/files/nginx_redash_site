@@ -90,3 +90,22 @@ server {
    index index.html index.htm;
 
 }
+
+upstream rd_staging_servers {
+  server 127.0.0.1:5009;
+}
+
+server {
+  listen 80;
+  server_name     staging.redash.easytaxi.com.br;
+  access_log      /var/log/nginx/rd.staging.access.log;
+  error_log       /var/log/nginx/rd.staging.error.log;
+
+  location / {
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass       http://rd_staging_servers;
+  }
+ 
+}
