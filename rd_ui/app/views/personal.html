@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <p ng-show="!currentUser.countries">To complete the registration, please contact your regional BI</p>
+    <p ng-show="!currentUser.countries||!currentUser.status">To complete the registration, please contact your regional BI</p>
 
     <div ng-show="currentUser.hasPermission('admin')" class="row">
         <div class="list-group">
