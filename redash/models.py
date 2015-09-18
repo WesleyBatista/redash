@@ -1229,7 +1229,7 @@ class Event(BaseModel):
         return event
 
 
-all_models = (DataSource, Area, User, QueryResult, Query, Alert, Dashboard, Visualization, Widget, ActivityLog, Group, Event)
+all_models = (DataSource, Area, User, QueryResult, Query, Alert, AlertSubscription, Dashboard, Visualization, Widget, ActivityLog, Group, Event)
 
 
 def init_db():
