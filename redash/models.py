@@ -416,6 +416,57 @@ class Area(BaseModel):
         return query
 
 
+    @classmethod
+    def get_subregions_list(self):
+        query = self.select(
+            Area.continent_code,
+            Area.continent_name,
+            Area.region_code,
+            Area.region_name,
+            Area.subregion_code,
+            Area.subregion_name,
+            Area.currency_code
+            ).order_by(self.region_code, self.subregion_code).group_by(
+                Area.continent_code,
+                Area.continent_name,
+                Area.region_code,
+                Area.region_name,
+                Area.subregion_code,
+                Area.subregion_name,
+                Area.currency_code
+            )
+        return query
+
+
+    @classmethod
+    def get_countries_list(self):
+        query = self.select(
+            Area.continent_code,
+            Area.continent_name,
+            Area.region_code,
+            Area.region_name,
+            Area.subregion_code,
+            Area.subregion_name,
+            Area.country_code,
+            Area.country_capital,
+            Area.country_name,
+            Area.currency_code
+            ).order_by(self.region_code, self.subregion_code).group_by(
+                Area.continent_code,
+                Area.continent_name,
+                Area.region_code,
+                Area.region_name,
+                Area.subregion_code,
+                Area.subregion_name,
+                Area.country_code,
+                Area.country_capital,
+                Area.country_name,
+                Area.currency_code
+            )
+        return query
+
+
+
 
     @classmethod
     def get_cities(self, country_code):
