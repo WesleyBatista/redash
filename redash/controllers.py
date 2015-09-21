@@ -87,24 +87,29 @@ def login():
             return redirect(url_for("google_oauth.authorize", next=request.args.get('next')))
 
     if request.method == 'POST':
-        try:
-            user = models.User.get_by_email(request.form['email'])
-            if user and user.verify_password(request.form['password']):
-                logging.info(user.status)
-                if user.status == True:
-                    remember = ('remember' in request.form)
-                    login_user(user, remember=remember)
-                    return redirect(request.args.get('next') or '/')
+        form_email = request.form['email']
+        if utils.verify_email_domain(form_email):
+            try:
+                if user and user.verify_password(request.form['password']):
+                    logging.info(user.status)
+                    if user.status == True:
+                        remember = ('remember' in request.form)
+                        login_user(user, remember=remember)
+                        return redirect(request.args.get('next') or '/')
+                    else:
+                        # Should we tell to talk with the adm?
+                        logging.info('User.Inactive Exception')
+                        flash("Wrong email or password.")
                 else:
-                    # Should we tell to talk with the adm?
-                    logging.info('User.Inactive Exception')
+                    logging.info('User.WrongPassword Exception')
                     flash("Wrong email or password.")
-            else:
-                logging.info('User.WrongPassword Exception')
+            except models.User.DoesNotExist:
+                logging.info('User.DoesNotExist Exception')
                 flash("Wrong email or password.")
-        except models.User.DoesNotExist:
-            logging.info('User.DoesNotExist Exception')
-            flash("Wrong email or password.")
+        else:
+            logging.info('User.DomainNotAllowed Exception')
+            flash("Domain not allowed")
+
 
     return render_template("login.html",
                            name=settings.NAME,
