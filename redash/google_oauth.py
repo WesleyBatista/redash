@@ -4,6 +4,7 @@ import requests
 from flask import redirect, url_for, Blueprint, flash
 from flask_oauth import OAuth
 from redash import models, settings
+from redash import utils
 
 logger = logging.getLogger('google_oauth')
 oauth = OAuth()
@@ -45,9 +46,7 @@ def verify_profile(profile):
     if not settings.GOOGLE_APPS_DOMAIN:
         return True
 
-    domain = profile['email'].split('@')[-1]
-    return domain in settings.GOOGLE_APPS_DOMAIN
-
+    return utils.verify_email_domain(profile['email'])
 
 def create_and_login_user(name, email):
     try:

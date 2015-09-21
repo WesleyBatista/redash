@@ -9,6 +9,7 @@ import re
 import hashlib
 import sqlparse
 import pytz
+from redash import settings
 
 COMMENTS_REGEX = re.compile("/\*.*?\*/")
 
@@ -71,6 +72,12 @@ def utcnow():
     which leads to errors in calculations.
     """
     return datetime.datetime.now(pytz.utc)
+
+
+def verify_email_domain(email):
+
+    email_domain = email.split('@')[-1]
+    return email_domain in settings.GOOGLE_APPS_DOMAIN
 
 def slugify(s):
     return re.sub('[^a-z0-9_\-]+', '-', s.lower())
