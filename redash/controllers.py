@@ -89,6 +89,7 @@ def login():
     if request.method == 'POST':
         form_email = request.form['email']
         if utils.verify_email_domain(form_email):
+            user = models.User.get_by_email(form_email)
             try:
                 if user and user.verify_password(request.form['password']):
                     logging.info(user.status)
