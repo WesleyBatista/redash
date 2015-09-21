@@ -287,8 +287,8 @@ class User(ModelTimestampsMixin, BaseModel, UserMixin, PermissionsCheckMixin):
             from
             users
             where
-            countries = '{}'
-            or countries is NULL
+            (countries = '{}'
+                        or countries is NULL)
             and not(groups @> ('{admin}'::varchar[]))
         """
 
