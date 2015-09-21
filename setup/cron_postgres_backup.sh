@@ -3,8 +3,9 @@ sudo -u postgres pg_dumpall | gzip > ${FILE_NAME}
 gsutil cp ${FILE_NAME} gs://redash/postgres/${FILE_NAME}
 
 
-# set with `crontab -e`
+# set with `sudo crontab -e`
 # ```bash
 # * * * * * /opt/redash/current/setup/cron_postgres_backup.sh 1> /opt/redash/logs/cron_job.log 2> /opt/redash/logs/cron_job_errors.log
 # @hourly /opt/redash/current/setup/cron_postgres_backup.sh 1> /opt/redash/logs/cron_job.log 2> /opt/redash/logs/cron_job_errors.log
+# * 7,19 * * * /opt/redash/current/setup/cron_postgres_backup.sh 1> /opt/redash/logs/cron_job.log 2> /opt/redash/logs/cron_job_errors.log
 # ```
