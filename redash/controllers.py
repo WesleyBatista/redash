@@ -351,10 +351,20 @@ class DashboardListAPI(BaseResource):
 
     @require_permission('create_dashboard')
     def post(self):
-        dashboard_properties = request.get_json(force=True)
-        dashboard = models.Dashboard(name=dashboard_properties['name'],
+        
+        request_json = request.get_json(force=True)
+        logging.info(request_json)
+
+        country = None
+        if 'admin' in self.current_user.groups:
+            country = None
+        elif 'manage' in self.current_user.groups:
+            country = request_json['country']['code']
+
+        dashboard = models.Dashboard(name=request_json['name'],
                                      user=self.current_user,
-                                     layout='[]')
+                                     layout='[]',
+                                     country=country)
         dashboard.save()
         return dashboard.to_dict()
 
@@ -398,6 +408,7 @@ class DashboardAPI(BaseResource):
         dashboard = models.Dashboard.get_by_id(dashboard_slug)
         dashboard.layout = dashboard_properties['layout']
         dashboard.name = dashboard_properties['name']
+        dashboard.country = dashboard_properties['country']
         dashboard.save()
 
         return dashboard.to_dict(with_widgets=True)
