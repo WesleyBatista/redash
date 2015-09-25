@@ -92,7 +92,7 @@
               $http.post('/api/dashboards/' + $scope.dashboard.id, {
                 'name': $scope.dashboard.name,
                 'layout': layout,
-                'country': country
+                'country': $scope.dashboard.country
               }).success(function(response) {
                 $scope.dashboard = new Dashboard(response);
                 $scope.saveInProgress = false;
@@ -102,7 +102,8 @@
             } else {
 
               $http.post('/api/dashboards', {
-                'name': $scope.dashboard.name
+                'name': $scope.dashboard.name,
+                'country': $scope.dashboard.country
               }).success(function(response) {
                 $(element).modal('hide');
                 $scope.dashboard = {
