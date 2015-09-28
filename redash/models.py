@@ -1035,10 +1035,6 @@ class Dashboard(ModelTimestampsMixin, BaseModel):
 
     @classmethod
     def get_by_slug(cls, slug, user_id = None):
-        logging.info('slug')
-        logging.info(slug)
-        logging.info("user_id")
-        logging.info(user_id)
         if user_id:
             return cls.get(cls.slug == slug, cls.user == user_id)
         else:

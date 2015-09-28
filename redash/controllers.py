@@ -387,7 +387,7 @@ class DashboardAPI(BaseResource):
                 # the users who created the current_user.
                 # but what we need is the business logic. who is above him. who is
                 # tehe Regional BI
-                dashboard = models.Dashboard.get_by_slug(dashboard_slug, parent_user_id["id"])
+                dashboard = models.Dashboard.get_by_slug(dashboard_slug, self.current_user.id)
                 results = dashboard.to_dict(with_widgets=True)
                 return results
 
@@ -396,7 +396,8 @@ class DashboardAPI(BaseResource):
                 results = dashboard.to_dict(with_widgets=True)
                 return results
 
-        except models.Dashboard.DoesNotExist:
+        except models.Dashboard.DoesNotExist, e:
+            logging.error(e)
             abort(404)
 
         abort(403)
