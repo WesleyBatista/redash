@@ -14,6 +14,7 @@ dependencies:
     - pip install pymongo==3.2.1
     - if [ "$CIRCLE_BRANCH" = "master" ]; then make deps; fi
   cache_directories:
+    - ~/.docker/
     - node_modules/
     - rd_ui/node_modules/
     - rd_ui/app/bower_components/
@@ -29,6 +30,8 @@ deployment:
       - echo "rd_ui/app" >> .dockerignore
       - docker build -t easytaxibr/redash:$(./manage.py version | sed -e "s/\+/./") .
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - env
+      - cat /home/ubuntu/.docker/config.json
       - docker push easytaxibr/redash:$(./manage.py version | sed -e "s/\+/./")
 notify:
   webhooks:
